@@ -13,7 +13,6 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-// @ts-expect-error - @mui/icons-material types not available
 import AddIcon from "@mui/icons-material/Add";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import KanbanColumn from "./components/KanbanColumn";
