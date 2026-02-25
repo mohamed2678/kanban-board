@@ -6,6 +6,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import { useState } from "react";
 
 type Task = {
   id: string;
@@ -41,7 +42,18 @@ async function createTask(task: Omit<Task, "id">) {
   return res.json();
 }
 
+async function deleteTask(id: string) {
+  const res = await fetch("/api/tasks", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+  if (!res.ok) throw new Error("Failed to delete task");
+  return res.json();
+}
+
 export default function Home() {
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
   const {
     data = [],
@@ -66,6 +78,13 @@ export default function Home() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
@@ -82,6 +101,13 @@ export default function Home() {
 
   return (
     <div style={{ padding: "20px" }}>
+      <input
+        type="text"
+        placeholder="Search tasks..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ marginBottom: "20px", padding: "10px", width: "100%" }}
+      />
       <h1>Kanban Board</h1>
       <button
         onClick={() =>
@@ -118,6 +144,9 @@ export default function Home() {
                   <h2 style={{ textTransform: "capitalize" }}>{column}</h2>
                   {data
                     .filter((task) => task.column === column)
+                    .filter((task) =>
+                      task.title.toLowerCase().includes(search.toLowerCase()),
+                    )
                     .map((task, index) => (
                       <Draggable
                         draggableId={task.id}
@@ -139,6 +168,16 @@ export default function Home() {
                           >
                             <h4>{task.title}</h4>
                             <p>{task.description}</p>
+                            <button
+                              onClick={() => deleteMutation.mutate(task.id)}
+                              style={{
+                                marginTop: "5px",
+                                padding: "5px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
                           </div>
                         )}
                       </Draggable>
