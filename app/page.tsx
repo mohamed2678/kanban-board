@@ -31,6 +31,16 @@ async function updateTask(task: Task) {
   return res.json();
 }
 
+async function createTask(task: Omit<Task, "id">) {
+  const res = await fetch("/api/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(task),
+  });
+  if (!res.ok) throw new Error("Failed to create task");
+  return res.json();
+}
+
 export default function Home() {
   const queryClient = useQueryClient();
   const {
@@ -44,6 +54,13 @@ export default function Home() {
 
   const mutation = useMutation({
     mutationFn: updateTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
@@ -66,6 +83,22 @@ export default function Home() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Kanban Board</h1>
+      <button
+        onClick={() =>
+          createMutation.mutate({
+            title: "New Task",
+            description: "Task description",
+            column: "backlog",
+          })
+        }
+        style={{
+          marginBottom: "20px",
+          padding: "10px",
+          cursor: "pointer",
+        }}
+      >
+        Add Task
+      </button>
       <DragDropContext onDragEnd={onDragEnd}>
         <div style={{ display: "flex", gap: "20px" }}>
           {columns.map((column) => (
