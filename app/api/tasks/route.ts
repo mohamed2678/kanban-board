@@ -135,7 +135,7 @@ export async function POST(req: Request) {
 
     tasks.push(newTask);
     return Response.json(newTask, { status: 201 });
-  } catch (error) {
+  } catch (_error) {
     return Response.json(
       { error: "Failed to create task" },
       { status: 500 }
@@ -176,7 +176,7 @@ export async function PUT(req: Request) {
     };
 
     return Response.json(tasks[taskIndex]);
-  } catch (error) {
+  } catch (_error) {
     return Response.json(
       { error: "Failed to update task" },
       { status: 500 }
@@ -211,7 +211,7 @@ export async function DELETE(req: Request) {
     }
 
     return Response.json({ success: true, message: "Task deleted successfully" });
-  } catch (error) {
+  } catch (_error) {
     return Response.json(
       { error: "Failed to delete task" },
       { status: 500 }

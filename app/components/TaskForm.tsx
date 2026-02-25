@@ -42,29 +42,46 @@ export default function TaskForm({
     column: "backlog",
   });
 
+  // Update form data when task changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     if (initialTask) {
       setFormData({
         title: initialTask.title,
         description: initialTask.description,
         column: initialTask.column,
       });
-    } else {
+    }
+  }, [initialTask]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
       setFormData({
         title: "",
         description: "",
         column: "backlog",
       });
     }
-  }, [initialTask, open]);
+  }, [open]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>,
+  const handleTextChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name as string]: value,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (
+    e: { target: { name: string | undefined; value: unknown } }
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name || "column"]: value,
     }));
   };
 
@@ -98,7 +115,7 @@ export default function TaskForm({
             label="Task Title"
             name="title"
             value={formData.title}
-            onChange={handleChange}
+            onChange={handleTextChange}
             fullWidth
             variant="outlined"
             required
@@ -107,7 +124,7 @@ export default function TaskForm({
             label="Description"
             name="description"
             value={formData.description}
-            onChange={handleChange}
+            onChange={handleTextChange}
             fullWidth
             variant="outlined"
             multiline
@@ -118,7 +135,7 @@ export default function TaskForm({
             <Select
               name="column"
               value={formData.column}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               label="Column"
             >
               {columns.map((col) => (

@@ -6,10 +6,10 @@ import {
   CardContent,
   CardActions,
   Typography,
-  Button,
   IconButton,
   Tooltip,
 } from "@mui/material";
+// @ts-expect-error - @mui/icons-material types not available
 import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 
 type Task = {

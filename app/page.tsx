@@ -1,22 +1,23 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import {
+  AppBar,
+  Toolbar,
+  Typography,
   Container,
   Box,
   TextField,
   Button,
-  Typography,
   Alert,
   CircularProgress,
-  AppBar,
-  Toolbar,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
-import TaskForm from "./components/TaskForm";
+// @ts-expect-error - @mui/icons-material types not available
+import AddIcon from "@mui/icons-material/Add";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import KanbanColumn from "./components/KanbanColumn";
+import TaskForm from "./components/TaskForm";
 
 type Task = {
   id: string;
@@ -27,41 +28,41 @@ type Task = {
 
 const COLUMNS = ["backlog", "in-progress", "review", "done"];
 
-async function fetchTasks(): Promise<Task[]> {
-  const res = await fetch("/api/tasks");
-  if (!res.ok) throw new Error("Failed to fetch tasks");
-  return res.json();
-}
+// Mock API functions (replace with actual API calls)
+const fetchTasks = async (): Promise<Task[]> => {
+  const response = await fetch("/api/tasks");
+  if (!response.ok) throw new Error("Failed to fetch tasks");
+  return response.json();
+};
 
-async function createTask(task: Omit<Task, "id">) {
-  const res = await fetch("/api/tasks", {
+const createTask = async (task: Omit<Task, "id">): Promise<Task> => {
+  const response = await fetch("/api/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
   });
-  if (!res.ok) throw new Error("Failed to create task");
-  return res.json();
-}
+  if (!response.ok) throw new Error("Failed to create task");
+  return response.json();
+};
 
-async function updateTask(task: Task) {
-  const res = await fetch("/api/tasks", {
+const updateTask = async (task: Task): Promise<Task> => {
+  const response = await fetch("/api/tasks", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
   });
-  if (!res.ok) throw new Error("Failed to update task");
-  return res.json();
-}
+  if (!response.ok) throw new Error("Failed to update task");
+  return response.json();
+};
 
-async function deleteTask(id: string) {
-  const res = await fetch("/api/tasks", {
+const deleteTask = async (id: string): Promise<void> => {
+  const response = await fetch("/api/tasks", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
   });
-  if (!res.ok) throw new Error("Failed to delete task");
-  return res.json();
-}
+  if (!response.ok) throw new Error("Failed to delete task");
+};
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -73,10 +74,10 @@ export default function Home() {
     data = [],
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: fetchTasks,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   const updateMutation = useMutation({
@@ -110,7 +111,6 @@ export default function Home() {
 
     if (!task) return;
 
-    // Only update if the column changed
     if (task.column !== destination.droppableId) {
       updateMutation.mutate({
         ...task,
@@ -148,17 +148,13 @@ export default function Home() {
   };
 
   return (
-    <>
-      {/* Header */}
+    <div>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            📋 Kanban Board
-          </Typography>
+          <Typography variant="h6">📋 Kanban Board</Typography>
         </Toolbar>
       </AppBar>
-
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Container maxWidth="lg" sx={{ marginTop: "20px" }}>
         {/* Search and Create Section */}
         <Box
           sx={{
@@ -231,7 +227,6 @@ export default function Home() {
                   onDelete={handleDeleteTask}
                   onEdit={handleEditTask}
                   searchQuery={search}
-                  isLoading={false}
                 />
               ))}
             </Box>
@@ -243,8 +238,10 @@ export default function Home() {
           <Box sx={{ marginTop: 3, textAlign: "center", color: "#666" }}>
             <Typography variant="body2">
               Total Tasks: {data.length} | Backlog:{" "}
-              {data.filter((t) => t.column === "backlog").length} | In Progress:{" "}
-              {data.filter((t) => t.column === "in-progress").length} | Review:{" "}
+              {data.filter((t) => t.column === "backlog").length} | In
+              Progress:{" "}
+              {data.filter((t) => t.column === "in-progress").length}{" "}
+              | Review:{" "}
               {data.filter((t) => t.column === "review").length} | Done:{" "}
               {data.filter((t) => t.column === "done").length}
             </Typography>
@@ -260,6 +257,6 @@ export default function Home() {
         initialTask={editingTask}
         columns={COLUMNS}
       />
-    </>
+    </div>
   );
 }
